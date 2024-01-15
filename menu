@@ -1,0 +1,99 @@
+#include <Arduino.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+#define LCD_I2C_ADDR 0x27
+#define SDA_PIN 21
+#define SCL_PIN 22
+
+LiquidCrystal_I2C lcd(LCD_I2C_ADDR, 20, 4);
+
+const int buttonUpPin = 2;    // Pin para el botón de desplazamiento hacia arriba
+const int buttonDownPin = 4;  // Pin para el botón de desplazamiento hacia abajo
+const int buttonSelectPin = 5; // Pin para el botón de selección
+
+int selectedOption = 1;  // Inicialmente selecciona la primera opción
+bool buttonSelectPressed = false;  // Estado del botón de selección
+
+void setup();
+void loop();
+void configure();
+void mainLoop();
+void readButtons();
+void displayMenu();
+void selectOption();
+
+void configure() {
+  Serial.begin(9600);
+  Wire.begin(SDA_PIN, SCL_PIN);
+  lcd.begin(20, 4);
+  lcd.init();
+  lcd.backlight();
+  pinMode(buttonUpPin, INPUT_PULLUP);
+  pinMode(buttonDownPin, INPUT_PULLUP);
+  pinMode(buttonSelectPin, INPUT_PULLUP);
+}
+
+void mainLoop() {
+  readButtons();
+  displayMenu();
+}
+
+void readButtons() {
+  if (digitalRead(buttonUpPin) == LOW && selectedOption < 2) {
+    selectedOption++;
+    delay(800);  // Agrega un pequeño retraso para evitar cambios rápidos
+  }
+
+  if (digitalRead(buttonDownPin) == LOW && selectedOption > 1) {
+    selectedOption--;
+    delay(800);  // Agrega un pequeño retraso para evitar cambios rápidos
+  }
+
+  if (digitalRead(buttonSelectPin) == LOW && !buttonSelectPressed) {
+    buttonSelectPressed = true;
+    selectOption();
+  } else if (digitalRead(buttonSelectPin) == HIGH) {
+    buttonSelectPressed = false;
+  }
+}
+
+void displayMenu() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Seleccione una opcion:");
+
+  lcd.setCursor(0, 1);
+  lcd.print(selectedOption == 1 ? "> Jugar" : "  Jugar");
+
+  lcd.setCursor(0, 2);
+  lcd.print(selectedOption == 2 ? "> Consultar Saldo" : "  Consultar Saldo");
+}
+
+void selectOption() {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Opcion seleccionada:");
+
+  lcd.setCursor(0, 1);
+  lcd.print(selectedOption == 1 ? "Jugar" : "Consultar Saldo");
+
+  // Agregar lógica específica para cada opción aquí
+  if (selectedOption == 1) {
+    // Lógica para la opción "Jugar"
+    // ...
+  } else if (selectedOption == 2) {
+    // Lógica para la opción "Consultar Saldo"
+    // ...
+  }
+
+  delay(2000);
+}
+
+void setup() {
+  configure();
+}
+
+void loop() {
+  mainLoop();
+}
